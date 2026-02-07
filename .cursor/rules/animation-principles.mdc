@@ -1,0 +1,99 @@
+---
+description: Dramatic, smooth, and elegant animation standards
+alwaysApply: true
+---
+
+# Animation Principles — Fluid, Dramatic & Elegant
+
+Whenever fluid, smooth, dramatic, or elegant animations are requested, aim for the best possible UX transition animations. Animations should feel like water: very smooth and organic. Think of high-end transition websites that prioritize calm and fluid motion over speed.
+
+## Core Philosophy
+
+- **Water-like fluidity**: Animations should feel smooth, continuous, and elegant—never abrupt or mechanical.
+- **Calm over speed**: Prioritize deliberate, calm motion over quick or snappy transitions.
+- **Emotional impact**: Use timing and easing to create a premium, high-end feel (Stripe, Apple, Awwwards-style sites).
+
+## Duration Guidelines
+
+- **Standard elements**: 600–800ms
+- **Hero / dramatic moments**: 1000–1400ms
+- **Exit animations**: 400–600ms (slightly faster but still smooth)
+- **Minimum**: Never use durations under 300ms
+
+## Easing Curves
+
+- **Primary (general)**: `cubic-bezier(0.4, 0.0, 0.2, 1)` — smooth deceleration
+- **Dramatic entries**: `cubic-bezier(0.16, 1, 0.3, 1)` — subtle overshoot / elastic feel
+- **Exits**: `cubic-bezier(0.4, 0.0, 1, 1)` — gentle acceleration out
+- **Avoid**: `linear`, `ease`, `ease-in-out` (too mechanical for this style)
+
+## Implementation
+
+### CSS / Custom Properties
+
+```css
+:root {
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-dramatic: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.4, 0, 1, 1);
+  --duration-standard: 0.65s;
+  --duration-hero: 1.2s;
+  --duration-exit: 0.5s;
+}
+
+.animated {
+  transition: transform var(--duration-standard) var(--ease-smooth),
+              opacity var(--duration-standard) var(--ease-smooth);
+}
+```
+
+### Tailwind
+
+Use custom durations and cubic-bezier in config, then:
+
+- `transition-all duration-[650ms]` with custom easing via `transition-timing-function`
+- Or define in `tailwind.config`: `transitionDuration: { smooth: '650ms', hero: '1200ms' }` and matching custom easings
+
+### Framer Motion
+
+```tsx
+const smoothTransition = {
+  type: 'tween',
+  duration: 0.65,
+  ease: [0.4, 0, 0.2, 1],
+};
+
+const dramaticEnter = {
+  type: 'tween',
+  duration: 1.2,
+  ease: [0.16, 1, 0.3, 1],
+};
+
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={dramaticEnter}
+/>
+```
+
+### GSAP
+
+```js
+gsap.to('.element', {
+  y: 0,
+  opacity: 1,
+  duration: 1.2,
+  ease: 'power2.out', // or CustomEase for cubic-bezier(0.16, 1, 0.3, 1)
+});
+```
+
+## Best Practices
+
+- **Stagger**: Use 100–150ms delays between sequential elements for layered entrances.
+- **Performance**: Prefer `transform` and `opacity`; avoid animating layout-heavy properties when possible.
+- **Reduced motion**: Respect `prefers-reduced-motion: reduce` (shorter or no animation).
+- **Depth**: Layer multiple properties (e.g. opacity + translateY + scale) for more organic feel.
+
+## Reference
+
+Aim for the calm, fluid feel of premium transition-heavy sites (e.g. Stripe, Apple product pages, Awwwards winners)—smooth and organic, not fast or snappy.

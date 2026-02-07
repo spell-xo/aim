@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #ffffff;
@@ -10,6 +11,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-anton: var(--font-anton);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +24,65 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Indicate pressable UI controls with a pointer cursor. */
+a[href],
+button:not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+summary,
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+/* Disabled controls should not look clickable. */
+button:disabled,
+input:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Preloader CTA: left-to-right green fill on hover, then subtle glow. */
+.btn-fill-hover {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: border-color 0.3s ease, color 0.25s ease, box-shadow 0.3s ease;
+}
+.btn-fill-hover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  left: 0;
+  width: 0;
+  background: #24ff00;
+  z-index: -1;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-fill-hover:hover::before {
+  width: 100%;
+}
+.btn-fill-hover:hover {
+  border-color: #24ff00;
+  color: black;
+  transition: border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.3s 0.25s ease,
+    box-shadow 0.4s 0.5s ease;
+  box-shadow: 0 0 24px rgba(36, 255, 0, 0.35);
 }
