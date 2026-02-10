@@ -2,13 +2,16 @@
 
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import CtaButton from "@/components/CtaButton";
 
-const TAGLINE_FADE_DELAY = 0.1;
-const TAGLINE_DURATION = 1.2;
-const TAGLINE_HOLD_MS = 3000;
-const LOADER_DELAY_MS = 4300; // 100 + 1200 + 3000
-const LOAD_DURATION_MS = 5000;
+// Timing constants for animation sequence
+const TEXT_APPEAR_MS = 3000;         // Epic text appears after 3s
+const LOADER_APPEAR_MS = 5000;       // Loader appears at 5s
+const LOADER_START_DELAY_MS = 1000;  // 1s delay before loader starts filling
+const LOAD_DURATION_MS = 5000;       // Loading animation duration
+
+// Easing curves for fluid, dramatic animations
 const DRAMATIC_EASE = [0.16, 1, 0.3, 1] as const;
 const EXIT_EASE = [0.4, 0, 1, 1] as const;
 
@@ -17,33 +20,50 @@ const EPIC_PHRASE =
 
 const fromBelow = { opacity: 0, y: 30 };
 const visible = { opacity: 1, y: 0 };
-const pushTransition = { type: "tween" as const, duration: 0.65, ease: DRAMATIC_EASE };
-const taglineTransition = {
-  type: "tween" as const,
-  duration: TAGLINE_DURATION,
-  delay: TAGLINE_FADE_DELAY,
-  ease: DRAMATIC_EASE,
-};
+
+// Transition presets for consistent fluid motion
+const layoutTransition = { type: "tween" as const, duration: 0.8, ease: DRAMATIC_EASE };
+const pushTransition = { type: "tween" as const, duration: 0.8, ease: DRAMATIC_EASE };
+const textTransition = { type: "tween" as const, duration: 1.2, ease: DRAMATIC_EASE };
 
 type PreloaderProps = {
   onComplete?: () => void;
 };
 
-/** Preloader: AIM always visible, tagline fades in, holds 3s, loader/CTA push from below. */
+/**
+ * Preloader: Logo centered, epic text fades in at 3s, green loader at 5s,
+ * CTA appears after loading completes. Fluid, dramatic, elegant.
+ */
 export default function Preloader({ onComplete }: PreloaderProps) {
+  const [showText, setShowText] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
+  const [loaderStarted, setLoaderStarted] = useState(false);
   const [showCta, setShowCta] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
-  const [isDone, setIsDone] = useState(false);
 
+  // Show epic text after 3 seconds
   useEffect(() => {
-    const t = setTimeout(() => setShowLoader(true), LOADER_DELAY_MS);
+    const t = setTimeout(() => setShowText(true), TEXT_APPEAR_MS);
     return () => clearTimeout(t);
   }, []);
 
+  // Show loader at 5 seconds
+  useEffect(() => {
+    const t = setTimeout(() => setShowLoader(true), LOADER_APPEAR_MS);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Start loader filling after 1 second delay once loader is visible
   useEffect(() => {
     if (!showLoader) return;
+    const t = setTimeout(() => setLoaderStarted(true), LOADER_START_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [showLoader]);
+
+  // Animate progress bar once loader has started
+  useEffect(() => {
+    if (!loaderStarted) return;
     const start = performance.now();
     const tick = (now: number) => {
       const elapsed = now - start;
@@ -54,24 +74,13 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     };
     const id = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(id);
-  }, [showLoader]);
+  }, [loaderStarted]);
 
   const handleEnter = useCallback(() => setIsExiting(true), []);
   const handleExitComplete = useCallback(() => {
-    setIsDone(true);
     onComplete?.();
   }, [onComplete]);
 
-  // Lock body scroll while preloader is visible
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
-
-  if (isDone) return null;
   if (isExiting) {
     return (
       <PortalExit onComplete={handleExitComplete} phrase={EPIC_PHRASE} />
@@ -80,7 +89,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[10000] flex h-[100dvh] flex-col overflow-hidden bg-black text-white"
+      className="fixed inset-0 z-[100000] flex h-[100dvh] flex-col overflow-hidden bg-black text-white"
       style={{ height: "100dvh" }}
       initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
@@ -90,23 +99,37 @@ export default function Preloader({ onComplete }: PreloaderProps) {
           layout
           className="flex h-full flex-col items-center justify-center gap-8 overflow-hidden px-6 py-12"
         >
-          <p
-            className="font-mono text-xs uppercase tracking-[0.4em] text-white/60 sm:text-sm"
-            style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-          >
-            AIM
-          </p>
-          <motion.p
-            layout
-            className="max-w-xl text-center text-lg font-light leading-relaxed text-white/90 sm:text-xl"
-            style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={taglineTransition}
-          >
-            {EPIC_PHRASE}
-          </motion.p>
-          <AnimatePresence>
+          {/* Logo - always visible, centered anchor with smooth layout animation */}
+          <motion.div layout transition={layoutTransition}>
+            <Image
+              src="/Logotype.svg"
+              alt="AIM"
+              width={46}
+              height={52}
+              priority
+              className="opacity-80"
+            />
+          </motion.div>
+
+          {/* Epic text - appears at 3s with dramatic fade */}
+          <AnimatePresence mode="popLayout">
+            {showText && (
+              <motion.p
+                layout
+                className="max-w-xl text-center text-lg font-light leading-relaxed text-white/90 sm:text-xl"
+                style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
+                initial={fromBelow}
+                animate={visible}
+                exit={{ opacity: 0 }}
+                transition={{ layout: layoutTransition, ...textTransition }}
+              >
+                {EPIC_PHRASE}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          {/* Loader - appears at 5s, starts filling after 1s delay */}
+          <AnimatePresence mode="popLayout">
             {showLoader && (
               <motion.div
                 layout
@@ -114,7 +137,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
                 initial={fromBelow}
                 animate={visible}
                 exit={{ opacity: 0 }}
-                transition={pushTransition}
+                transition={{ layout: layoutTransition, ...pushTransition }}
               >
                 <div className="flex items-center justify-between gap-4">
                   <span
@@ -125,7 +148,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
                   </span>
                   <div className="h-px flex-1 overflow-hidden bg-white/30">
                     <motion.div
-                      className="h-full bg-white"
+                      className="h-full bg-[#24ff00]"
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
                       transition={{ duration: 0.15, ease: "linear" }}
@@ -135,14 +158,16 @@ export default function Preloader({ onComplete }: PreloaderProps) {
               </motion.div>
             )}
           </AnimatePresence>
-          <AnimatePresence>
+
+          {/* CTA button - appears after loading completes */}
+          <AnimatePresence mode="popLayout">
             {showCta && (
               <motion.div
                 layout
                 initial={fromBelow}
                 animate={visible}
                 exit={{ opacity: 0 }}
-                transition={pushTransition}
+                transition={{ layout: layoutTransition, ...pushTransition }}
               >
                 <CtaButton onClick={handleEnter}>Enter the Experience</CtaButton>
               </motion.div>
@@ -164,7 +189,7 @@ function PortalExit({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center overflow-hidden bg-black"
+      className="fixed inset-0 z-[100000] flex items-center justify-center overflow-hidden bg-black"
       style={{ height: "100dvh" }}
     >
       <motion.div

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type HeaderTheme = "dark" | "light";
@@ -19,19 +19,27 @@ const ROOT_MARGIN = "0px 0px -95% 0px";
 export function HeaderThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(true);
   const pathname = usePathname();
+  const intersectingRef = useRef<Set<Element>>(new Set());
 
   useEffect(() => {
+    intersectingRef.current.clear();
     const nodes = document.querySelectorAll(`[${THEME_ATTR}]`);
     if (nodes.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries: IntersectionObserverEntry[]) => {
-        const intersecting = entries.filter((e) => e.isIntersecting);
-        if (intersecting.length === 0) return;
-        const topmost = intersecting.sort(
-          (a, b) => a.boundingClientRect.top - b.boundingClientRect.top
-        )[0];
-        const theme = (topmost.target.getAttribute(THEME_ATTR) ?? "dark") as HeaderTheme;
+        for (const e of entries) {
+          if (e.isIntersecting) intersectingRef.current.add(e.target);
+          else intersectingRef.current.delete(e.target);
+        }
+        const set = intersectingRef.current;
+        const topmost =
+          set.size === 0
+            ? null
+            : [...set]
+                .map((el) => ({ el, top: el.getBoundingClientRect().top }))
+                .sort((a, b) => a.top - b.top)[0]?.el;
+        const theme = (topmost?.getAttribute(THEME_ATTR) ?? "dark") as HeaderTheme;
         setIsDark(theme === "dark");
       },
       { root: null, rootMargin: ROOT_MARGIN, threshold: 0 }

@@ -3,12 +3,17 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useHeaderTheme } from "@/contexts/HeaderThemeContext";
 import ScrollProgressBar from "@/components/ui/ScrollProgressBar";
+import MusicToggle from "@/components/ui/MusicToggle";
 
 const PREMIUM_EASE = [0.22, 1, 0.36, 1] as const;
+const SMOOTH_EASE = [0.4, 0, 0.2, 1] as const;
+
+/** Minimum scroll delta before direction change triggers hide/show */
+const SCROLL_THRESHOLD = 10;
 
 type HeaderProps = {
   visible?: boolean;
@@ -23,43 +28,104 @@ const textDark =
 const textDarkNav =
   "text-xs font-medium uppercase tracking-[0.2em] text-zinc-900 transition-colors hover:text-black duration-500";
 
+/** Hook for tracking scroll direction and position */
+function useScrollDirection() {
+  const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
+  const [scrollY, setScrollY] = useState(0);
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
+
+  const updateScrollDirection = useCallback(() => {
+    const currentY = window.scrollY;
+    const delta = currentY - lastScrollY.current;
+
+    // Only change direction if scroll delta exceeds threshold
+    if (Math.abs(delta) > SCROLL_THRESHOLD) {
+      setScrollDirection(delta > 0 ? "down" : "up");
+      lastScrollY.current = currentY;
+    }
+
+    setScrollY(currentY);
+    ticking.current = false;
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(updateScrollDirection);
+        ticking.current = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [updateScrollDirection]);
+
+  return { scrollDirection, scrollY };
+}
+
 /** Renders progress bar + main header; fixed to viewport. Used inside portal. */
 function HeaderContent({
   visible,
-  soundOn,
-  setSoundOn,
   isDark,
 }: {
   visible: boolean;
-  soundOn: boolean;
-  setSoundOn: React.Dispatch<React.SetStateAction<boolean>>;
   isDark: boolean;
 }) {
+  const { scrollDirection, scrollY } = useScrollDirection();
+  const [viewportHeight, setViewportHeight] = useState(0);
+
+  useEffect(() => {
+    setViewportHeight(window.innerHeight);
+    const handleResize = () => setViewportHeight(window.innerHeight);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Header visible when: in hero section OR scrolling up (after leaving hero)
+  const isScrolledUp = scrollDirection === "up";
+  const isInHero = scrollY < viewportHeight;
+  const headerVisible = visible && (isInHero || isScrolledUp);
+
+  // Show black background when scrolled past ~80% of hero (viewport height)
+  const showBackground = scrollY > viewportHeight * 0.8;
+
   return (
-    <>
-      <div className="fixed left-0 right-0 top-0 z-[9999] pointer-events-none flex h-5 items-center px-6">
-        <ScrollProgressBar />
-      </div>
+    <div className="pointer-events-none fixed inset-0 z-[99999]">
       <motion.header
-        className="fixed left-0 right-0 top-5 z-[9998] flex flex-col"
+        className="pointer-events-auto fixed left-0 right-0 top-0 flex flex-col"
         initial={{ opacity: 0, y: -16 }}
         animate={{
-          opacity: visible ? 1 : 0,
-          y: visible ? 0 : -16,
+          opacity: headerVisible ? 1 : 0,
+          y: headerVisible ? 0 : -24,
         }}
         transition={{ duration: 0.5, ease: PREMIUM_EASE }}
       >
-        <div className="flex h-16 items-center justify-between px-6 md:px-8 lg:px-10">
+        {/* Animated black background layer */}
+        <motion.div
+          className="absolute inset-0 bg-black/90 backdrop-blur-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: showBackground ? 1 : 0 }}
+          transition={{ duration: 0.4, ease: SMOOTH_EASE }}
+          aria-hidden
+        />
+
+        {/* Progress bar at top, inside header */}
+        <div className="relative flex h-5 items-center px-6">
+          <ScrollProgressBar />
+        </div>
+
+        <div className="relative flex h-16 items-center justify-between px-6 md:px-8 lg:px-10">
           <Link
             href="/"
             className="relative flex items-center transition-opacity hover:opacity-80"
             aria-label="AIM home"
           >
             <span
-              className={`inline-block transition-[filter] duration-500 ${!isDark ? "invert" : ""}`}
+              className={`inline-block transition-[filter] duration-500 ${!isDark && !showBackground ? "invert" : ""}`}
             >
               <Image
-                src="/Hero/Logotype.svg"
+                src="/Logotype.svg"
                 alt="AIM"
                 width={23}
                 height={26}
@@ -69,7 +135,7 @@ function HeaderContent({
           </Link>
 
           <p
-            className={`absolute left-1/2 hidden -translate-x-1/2 ${isDark ? textLight : textDark}`}
+            className={`absolute left-1/2 hidden -translate-x-1/2 ${isDark || showBackground ? textLight : textDark}`}
             style={{ fontFamily: "var(--font-geist-mono), monospace" }}
           >
             Creating Tomorrow&apos;s Champions
@@ -79,52 +145,40 @@ function HeaderContent({
             <nav className="flex items-center gap-6" aria-label="Main">
               <Link
                 href="#about"
-                className={isDark ? textLightNav : textDarkNav}
+                className={isDark || showBackground ? textLightNav : textDarkNav}
                 style={{ fontFamily: "var(--font-geist-mono), monospace" }}
               >
                 About
               </Link>
               <Link
                 href="#team"
-                className={isDark ? textLightNav : textDarkNav}
+                className={isDark || showBackground ? textLightNav : textDarkNav}
                 style={{ fontFamily: "var(--font-geist-mono), monospace" }}
               >
                 Team
               </Link>
               <Link
                 href="#aimfc"
-                className={isDark ? textLightNav : textDarkNav}
+                className={isDark || showBackground ? textLightNav : textDarkNav}
                 style={{ fontFamily: "var(--font-geist-mono), monospace" }}
               >
                 AIMFC
               </Link>
             </nav>
             <span
-              className={`h-4 w-px transition-colors duration-500 ${isDark ? "bg-white/40" : "bg-zinc-400"}`}
+              className={`h-4 w-px transition-colors duration-500 ${isDark || showBackground ? "bg-white/40" : "bg-zinc-400"}`}
               aria-hidden
             />
-            <button
-              type="button"
-              onClick={() => setSoundOn((o) => !o)}
-              className={`flex items-center justify-center transition-colors duration-500 ${isDark ? "text-white/90 hover:text-white" : "text-zinc-900 hover:text-black"}`}
-              aria-label={soundOn ? "Mute sound" : "Unmute sound"}
-            >
-              {soundOn ? (
-                <SoundOnIcon className="h-5 w-5" />
-              ) : (
-                <SoundOffLine className="h-4 w-8" />
-              )}
-            </button>
+            <MusicToggle isDark={isDark || showBackground} />
           </div>
         </div>
       </motion.header>
-    </>
+    </div>
   );
 }
 
 /** Minimal header per Figma: progress bar top, logo left, tagline center, nav tabs + sound toggle right. Portals to body so fixed positioning is relative to viewport (avoids PageTransition transform). */
 export default function Header({ visible = true }: HeaderProps) {
-  const [soundOn, setSoundOn] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { isDark } = useHeaderTheme();
 
@@ -135,46 +189,7 @@ export default function Header({ visible = true }: HeaderProps) {
   if (!mounted || typeof document === "undefined") return null;
 
   return createPortal(
-    <HeaderContent
-      visible={visible}
-      soundOn={soundOn}
-      setSoundOn={setSoundOn}
-      isDark={isDark}
-    />,
+    <HeaderContent visible={visible} isDark={isDark} />,
     document.body
-  );
-}
-
-/** Sound on: four vertical bars. */
-function SoundOnIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="currentColor"
-      viewBox="0 0 24 24"
-      aria-hidden
-    >
-      <rect x="4" y="16" width="2" height="6" rx="0.5" />
-      <rect x="9" y="12" width="2" height="10" rx="0.5" />
-      <rect x="14" y="8" width="2" height="14" rx="0.5" />
-      <rect x="19" y="4" width="2" height="18" rx="0.5" />
-    </svg>
-  );
-}
-
-/** Sound off: minimal 32px horizontal line per Figma. */
-function SoundOffLine({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 32 16"
-      strokeWidth={2}
-      strokeLinecap="round"
-      aria-hidden
-    >
-      <line x1="0" y1="8" x2="32" y2="8" />
-    </svg>
   );
 }

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type PageTransitionProps = {
   children: React.ReactNode;
@@ -17,20 +17,26 @@ const LAST_PATHNAME_KEY = "aim:lastPathname";
 /** Page-level transition wrapper; skips entrance animation on first load so preloader is visible. */
 export default function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
 
-  // Persist navigation state without refs/state (keeps render pure and satisfies strict hook lint rules).
+  // Ensure hydration consistency: only check sessionStorage after mount
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    setMounted(true);
+  }, []);
+
+  // Persist navigation state for subsequent navigations
+  useEffect(() => {
+    if (!mounted) return;
     const previous = window.sessionStorage.getItem(LAST_PATHNAME_KEY);
     if (previous && previous !== pathname) {
       window.sessionStorage.setItem(NAVIGATED_FLAG_KEY, "1");
     }
     window.sessionStorage.setItem(LAST_PATHNAME_KEY, pathname);
-  }, [pathname]);
+  }, [pathname, mounted]);
 
+  // Only apply navigation animation after hydration to avoid mismatch
   const hasNavigated =
-    typeof window !== "undefined" &&
-    window.sessionStorage.getItem(NAVIGATED_FLAG_KEY) === "1";
+    mounted && window.sessionStorage.getItem(NAVIGATED_FLAG_KEY) === "1";
   const initial = hasNavigated ? hidden : visible;
 
   return (
