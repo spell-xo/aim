@@ -8,13 +8,16 @@ type PageTransitionProps = {
   children: React.ReactNode;
 };
 
-const visible = { opacity: 1, y: 0, filter: "blur(0px)" };
-const hidden = { opacity: 0, y: 20, filter: "blur(6px)" };
+/** Dramatic easing for fluid, water-like transitions */
+const DRAMATIC_EASE = [0.16, 1, 0.3, 1] as const;
+
+const visible = { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" };
+const hidden = { opacity: 0, y: 30, scale: 0.98, filter: "blur(8px)" };
 
 const NAVIGATED_FLAG_KEY = "aim:hasNavigated";
 const LAST_PATHNAME_KEY = "aim:lastPathname";
 
-/** Page-level transition wrapper; skips entrance animation on first load so preloader is visible. */
+/** Page-level transition wrapper with fluid, elegant animations. Skips entrance animation on first load so preloader is visible. */
 export default function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -45,8 +48,12 @@ export default function PageTransition({ children }: PageTransitionProps) {
         key={pathname}
         initial={initial}
         animate={visible}
-        exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        exit={{ opacity: 0, y: -20, scale: 0.98, filter: "blur(6px)" }}
+        transition={{
+          duration: 0.8,
+          ease: DRAMATIC_EASE,
+          opacity: { duration: 0.6 },
+        }}
       >
         {children}
       </motion.div>

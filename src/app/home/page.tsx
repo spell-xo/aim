@@ -5,6 +5,7 @@ import Hero from "@/components/Hero";
 import MissionSection from "@/components/MissionSection";
 import UnlockYourPotential from "@/components/UnlockYourPotential";
 import StorytellingSection from "@/components/StorytellingSection";
+import Footer from "@/components/Footer";
 import { useAudio } from "@/contexts/AudioContext";
 import { useEffect } from "react";
 
@@ -28,6 +29,7 @@ export default function HomePage() {
           <MissionSection />
           <UnlockYourPotential />
           <StorytellingSection />
+          <Footer />
         </div>
       </div>
     </div>

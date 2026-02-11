@@ -99,7 +99,7 @@ export default function MissionSection() {
   ];
 
   return (
-    <section ref={containerRef} aria-label="Our Mission" className="relative" data-header-theme="light">
+    <section id="mission" ref={containerRef} aria-label="Our Mission" className="relative" data-header-theme="light">
       <div className="h-[700vh]">
         <div className="sticky top-0 flex h-screen w-full items-center justify-center bg-white px-6 py-16">
           <div className="relative mx-auto min-h-[200px] w-full max-w-3xl text-center">

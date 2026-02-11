@@ -22,11 +22,11 @@ type HeaderProps = {
 const textLight =
   "text-xs font-light uppercase tracking-[0.2em] text-white/90 md:block transition-colors duration-500";
 const textLightNav =
-  "text-xs font-medium uppercase tracking-[0.2em] text-white/90 transition-colors hover:text-white duration-500";
+  "text-xs font-medium uppercase tracking-[0.2em] text-white/90 transition-colors hover:text-[#24ff00] duration-500";
 const textDark =
   "text-xs font-light uppercase tracking-[0.2em] text-zinc-900 md:block transition-colors duration-500";
 const textDarkNav =
-  "text-xs font-medium uppercase tracking-[0.2em] text-zinc-900 transition-colors hover:text-black duration-500";
+  "text-xs font-medium uppercase tracking-[0.2em] text-zinc-900 transition-colors hover:text-[#24ff00] duration-500";
 
 /** Hook for tracking scroll direction and position */
 function useScrollDirection() {
@@ -116,53 +116,63 @@ function HeaderContent({
         </div>
 
         <div className="relative flex h-16 items-center justify-between px-6 md:px-8 lg:px-10">
-          <Link
-            href="/"
-            className="relative flex items-center transition-opacity hover:opacity-80"
-            aria-label="AIM home"
-          >
-            <span
-              className={`inline-block transition-[filter] duration-500 ${!isDark && !showBackground ? "invert" : ""}`}
+          {/* Logo + Tagline grouped together per Figma design */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/home"
+              className="relative flex items-center transition-opacity hover:opacity-80"
+              aria-label="AIM home"
             >
-              <Image
-                src="/Logotype.svg"
-                alt="AIM"
-                width={23}
-                height={26}
-                className="h-7 w-auto"
-              />
-            </span>
-          </Link>
+              <span
+                className={`inline-block transition-[filter] duration-500 ${!isDark && !showBackground ? "invert" : ""}`}
+              >
+                <Image
+                  src="/Logotype.svg"
+                  alt="AIM"
+                  width={23}
+                  height={26}
+                  className="h-7 w-auto"
+                />
+              </span>
+            </Link>
 
-          <p
-            className={`absolute left-1/2 hidden -translate-x-1/2 ${isDark || showBackground ? textLight : textDark}`}
-            style={{ fontFamily: "var(--font-geist-mono), monospace" }}
-          >
-            Creating Tomorrow&apos;s Champions
-          </p>
+            <p
+              className={`hidden ${isDark || showBackground ? textLight : textDark}`}
+              style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+            >
+              Creating Tomorrow&apos;s Champions
+            </p>
+          </div>
 
           <div className="flex items-center gap-6">
             <nav className="flex items-center gap-6" aria-label="Main">
               <Link
-                href="#about"
+                href="/home"
                 className={isDark || showBackground ? textLightNav : textDarkNav}
                 style={{ fontFamily: "var(--font-geist-mono), monospace" }}
               >
-                About
+                Home
               </Link>
               <Link
-                href="#team"
+                href="/about"
                 className={isDark || showBackground ? textLightNav : textDarkNav}
                 style={{ fontFamily: "var(--font-geist-mono), monospace" }}
               >
-                Team
+                Mission
               </Link>
               <Link
-                href="#aimfc"
+                href="/contact"
                 className={isDark || showBackground ? textLightNav : textDarkNav}
                 style={{ fontFamily: "var(--font-geist-mono), monospace" }}
               >
-                AIMFC
+                Contact
+              </Link>
+              <Link
+                href="/download"
+                className={isDark || showBackground ? textLightNav : textDarkNav}
+                style={{ fontFamily: "var(--font-geist-mono), monospace" }}
+              >
+                Download
               </Link>
             </nav>
             <span
@@ -177,7 +187,7 @@ function HeaderContent({
   );
 }
 
-/** Minimal header per Figma: progress bar top, logo left, tagline center, nav tabs + sound toggle right. Portals to body so fixed positioning is relative to viewport (avoids PageTransition transform). */
+/** Minimal header per Figma: progress bar top, logo + tagline left, nav tabs + sound toggle right. Portals to body so fixed positioning is relative to viewport (avoids PageTransition transform). */
 export default function Header({ visible = true }: HeaderProps) {
   const [mounted, setMounted] = useState(false);
   const { isDark } = useHeaderTheme();
