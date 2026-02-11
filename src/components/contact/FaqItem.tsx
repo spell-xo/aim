@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 
 /** Fluid animation easing per workspace animation principles */
-const DRAMATIC_EASE = [0.16, 1, 0.3, 1];
+const DRAMATIC_EASE = [0.16, 1, 0.3, 1] as const;
 const ANIMATION_DURATION = 0.7;
 
 type FaqItemProps = {

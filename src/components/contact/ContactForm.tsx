@@ -84,10 +84,10 @@ export default function ContactForm() {
 
   /** Check if form is valid for submission */
   const isFormValid =
-    name.trim() &&
-    email.trim() &&
-    subject.trim() &&
-    message.trim() &&
+    !!name.trim() &&
+    !!email.trim() &&
+    !!subject.trim() &&
+    !!message.trim() &&
     PATTERNS.name.test(name) &&
     PATTERNS.email.test(email) &&
     PATTERNS.subject.test(subject) &&
