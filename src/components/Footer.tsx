@@ -14,7 +14,7 @@ export default function Footer() {
       <div className="h-px w-full bg-white/10" />
 
       {/* Main content */}
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-12 px-6 py-16 lg:flex-row lg:items-start lg:justify-between lg:py-20">
+      <div className="flex w-full flex-col gap-12 px-6 py-16 lg:flex-row lg:items-start lg:justify-between lg:px-12 lg:py-20">
         {/* Left - Logo and download buttons */}
         <div className="flex flex-col gap-8">
           <Link href="/" className="transition-opacity hover:opacity-80">
@@ -69,7 +69,7 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="h-px w-full bg-white/10" />
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center justify-between gap-6 px-6 py-6 md:flex-row">
+      <div className="flex w-full flex-col items-center justify-between gap-6 px-6 py-6 lg:px-12 md:flex-row">
         {/* Copyright */}
         <p
           className="text-xs text-white/40"

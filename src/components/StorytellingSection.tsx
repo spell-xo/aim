@@ -7,9 +7,6 @@ import { useRef } from "react";
 const PREMIUM_EASE = [0.16, 1, 0.3, 1] as const;
 const SMOOTH_EASE = [0.4, 0, 0.2, 1] as const;
 
-/** Divider graphic from Figma */
-const DIVIDER_URL = "https://www.figma.com/api/mcp/asset/761c7575-3428-4d33-a328-79f35eac846f";
-
 /**
  * StorytellingSection: "Every Stat Tells A Story" section with asymmetric card grid,
  * descriptive text overlays, and scroll-based parallax animations.
@@ -32,11 +29,17 @@ export default function StorytellingSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#010400] py-24"
+      className="relative bg-[#010400] py-24"
       data-header-theme="dark"
       aria-label="Every Stat Tells A Story"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-[72px] px-6">
+      {/* Full-bleed divider line - positioned at section level for true edge-to-edge */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-[calc(96px+52px+24px)] h-px bg-[#24ff00]/60 sm:top-[calc(96px+60px+24px)] lg:top-[calc(96px+52px+24px)]"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto flex w-full max-w-[1440px] flex-col items-center gap-[72px] px-6">
         {/* Header section */}
         <motion.div
           className="flex w-full flex-col items-center gap-6"
@@ -52,15 +55,8 @@ export default function StorytellingSection() {
             tells a story
           </h2>
 
-          {/* Green divider line */}
-          <div className="h-6 w-full">
-            <img
-              src={DIVIDER_URL}
-              alt=""
-              className="h-full w-full object-contain"
-              aria-hidden="true"
-            />
-          </div>
+          {/* Spacer for divider visual gap */}
+          <div className="h-px w-full" aria-hidden="true" />
 
           {/* Subheading description */}
           <p

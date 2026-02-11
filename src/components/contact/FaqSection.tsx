@@ -48,17 +48,19 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="w-full bg-black px-6 py-24 lg:px-0">
-      {/* Header */}
-      <div className="mx-auto w-full max-w-[1440px] px-0 lg:px-6">
-        <h2
-          className="mb-12 text-4xl uppercase leading-none tracking-tight text-white md:text-5xl"
-          style={{ fontFamily: "var(--font-anton), sans-serif" }}
-        >
-          <span className="block">FREQUENTLY</span>
-          <span className="block">ASKED</span>
-          <span className="block">QUESTIONS</span>
-        </h2>
+    <section className="w-full bg-black py-24">
+      {/* Header aligned to the same left column rhythm as ContactHero */}
+      <div className="w-full px-6 lg:px-12">
+        <div className="w-full lg:w-1/2">
+          <h2
+            className="mb-12 text-4xl uppercase leading-none tracking-tight text-white md:text-5xl"
+            style={{ fontFamily: "var(--font-anton), sans-serif" }}
+          >
+            <span className="block">FREQUENTLY</span>
+            <span className="block">ASKED</span>
+            <span className="block">QUESTIONS</span>
+          </h2>
+        </div>
       </div>
 
       {/* FAQ Items - full width lines */}
